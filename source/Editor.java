@@ -14,56 +14,89 @@ import java.util.*;
 
 public class Editor
 {
-	private static JFrame frame;
-	private static ArrayList<TileImage> tileset;
-	private static Level loadedLevel;
+	private final static Editor instance = new Editor();
 	
-	public static void main(String[] args)
+	private ArrayList<TileImage> tileImages;		//Tile images
+	private ArrayList<Tile> tileSet;				//Active tileset
+	private Level loadedLevel;						//Currently loaded level
+	private EditorTool activeTool;					//Active viewport based tool
+	
+	public Editor()
 	{
-		frame = new JFrame("Editor");
-		Container contentPane = frame.getContentPane();
+		tileImages = new ArrayList<>();
+		tileSet = new ArrayList<>();
+		loadedLevel = new Level("New Level", 20, 10);
+		activeTool = new EditorTool();
+		activeTool.enable();
 		
-		Viewport viewport = new Viewport();
-		viewport.addMouseListener(viewport);
-		viewport.addMouseMotionListener(viewport);
-		contentPane.add(viewport);
+		//Test
+		TileImage wallImage = createNewTileImage("wall.png");
+		TileImage grassImage = createNewTileImage("grass.png");
+		TileImage sandImage = createNewTileImage("sand.png");
 		
-		//We better do this!
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		//Create menubar
-		JMenuBar menubar = new JMenuBar();
-		frame.setJMenuBar(menubar);
-		//Create file menu
-		JMenu fileMenu = new JMenu("File");
-		menubar.add(fileMenu);
-		JMenuItem openItem = new JMenuItem("Open");
-		fileMenu.add(openItem);
-		JMenuItem saveItem = new JMenuItem("Save");
-		fileMenu.add(saveItem);
-		JMenuItem closeItem = new JMenuItem("Close");
-		fileMenu.add(closeItem);
-		JMenuItem quitItem = new JMenuItem("Quit");
-		fileMenu.add(quitItem);
-		//Create help menu
-		JMenu helpMenu = new JMenu("Help");
-		menubar.add(helpMenu);
-		JMenuItem aboutItem = new JMenuItem("About");
-		helpMenu.add(aboutItem);
-		//Pack it (set size automatically)
-		frame.pack();
-		//Speaks for itself
-		frame.setVisible(true);
+		Tile wallTile = createNewTile("wall", false, wallImage);
+		Tile grassTile = createNewTile("grass", true, grassImage);
+		Tile sandTile = createNewTile("sand", true, sandImage);
+		
+		for(int y = 0; y < loadedLevel.tileCountY; y++)
+		{
+			for(int x = 0; x < loadedLevel.tileCountX; x++)
+			{
+				if(x == 0 || y ==0 || x == loadedLevel.tileCountX - 1 || y == loadedLevel.tileCountY - 1)
+					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = wallTile;
+				else if(x == 3 || x == 6)
+					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = sandTile;
+				else
+					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = grassTile;
+			}
+		}
+	}
+	
+	public static Editor getInstance()
+	{
+		return instance;
 	}
 	
 	public void loadLevel(String level)
 	{
 		
 	}
+	
+	public Level getLoadedLevel()
+	{
+		return loadedLevel;
+	}
+	
+	public TileImage createNewTileImage(String imageFileName)
+	{
+		TileImage newImage = new TileImage(imageFileName);
+		tileImages.add(newImage);
+		return newImage;
+	}
+	
+	public Tile createNewTile(String name, boolean walkable, TileImage image)
+	{
+		Tile newTile = new Tile(name, walkable, image);
+		tileSet.add(newTile);
+		return newTile;
+	}
+	
+	public EditorTool getActiveTool()
+	{
+		return activeTool;
+	}
+	
+	public void setActiveTool(EditorTool newTool)
+	{
+		activeTool.disable();
+		activeTool = newTool;
+		activeTool.enable();
+	}
 }
 
 class TileImage
 {
+	public String name;
 	public String imageFileName;
 	public BufferedImage image;
 	
@@ -72,6 +105,7 @@ class TileImage
 		//Try to load the image
 		try{
 			this.imageFileName = imageFileName;
+			name = imageFileName;
 			image = ImageIO.read(new File("../resources/" + imageFileName));
 		}catch(IOException e){
 			//Like I give a fuck
@@ -82,9 +116,9 @@ class TileImage
 
 class Tile
 {
-	private String name;
-	private boolean walkable;
-	private TileImage image;
+	public String name;
+	public boolean walkable;
+	public TileImage image;
 	
 	public Tile(String name, boolean walkable, TileImage image)
 	{
@@ -101,7 +135,7 @@ class Tile
 
 class Level
 {
-	private String name;
+	public String name;
 	public Tile[] tiles;
 	public int tileCountX;
 	public int tileCountY;
@@ -118,100 +152,5 @@ class Level
 		{
 			tiles[i] = t;
 		}
-	}
-}
-
-/*
-	Wut
-*/
-class Viewport extends JPanel implements MouseListener, MouseMotionListener
-{
-	private int offsetX;
-	private int offsetY;
-	private Point dragStartPosition = new Point();
-	private BufferedImage image;
-	private Level level;
-	
-	public Viewport()
-	{
-		super();
-		offsetX = 10;
-		offsetY = 10;
-		try{
-			image = ImageIO.read(new File("../resources/grass.png"));
-		}catch(IOException e){
-			//Like I give a fuck
-		}
-		
-		level = new Level("Test Level", 10, 10);
-	}
-
-	public void paintComponent(Graphics g)
-	{
-		super.paintComponent(g);
-		Graphics2D graphics = (Graphics2D)g.create();
-		Insets insets = getInsets();
-		//graphics.translate(insets.left, insets.top);
-		//graphics.drawString("This is my panel, bitch!", x, y);
-		graphics.drawString("This is my panel, bitch!", 10, 20);
-		for(int y = 0; y < level.tileCountY; y++)
-		{
-			for(int x = 0; x < level.tileCountY; x++)
-			{
-				graphics.drawImage(level.tiles[x + y * level.tileCountX].getBufferedImage(),
-				x * 32 + offsetX, y * 32 + offsetY,
-				32, 32, null);
-			}
-		}
-		graphics.dispose();
-	}
-	/*
-		Our event listeners
-		TODO: Move this to another class
-	*/
-	public void mouseMoved(MouseEvent e)
-	{
-		//DO shit
-	}
-	
-	public void mouseDragged(MouseEvent e)
-	{
-		System.out.println("Button " + e.getButton() + " was dragged!");
-		Point mouseDelta = new Point(e.getX() - dragStartPosition.x, e.getY() - dragStartPosition.y);
-		offsetX += mouseDelta.x;
-		offsetY += mouseDelta.y;
-		repaint();
-		//revalidate();
-		dragStartPosition = e.getPoint();
-	}
-	
-	public void mousePressed(MouseEvent e)
-	{
-		System.out.println("Mouse Pressed Event");
-		if(e.getButton() == MouseEvent.BUTTON1)
-		{
-			System.out.println("Button was BUTTON1");
-		}
-		dragStartPosition = e.getPoint();
-	}
-	
-	public void mouseReleased(MouseEvent e)
-	{
-		System.out.println("Mouse Released Event");
-	}
-	
-	public void mouseEntered(MouseEvent e)
-	{
-		System.out.println("Mouse Entered Event");
-	}
-	
-	public void mouseExited(MouseEvent e)
-	{
-		System.out.println("Mouse Exited Event");
-	}
-	
-	public void mouseClicked(MouseEvent e)
-	{
-		System.out.println("Mouse Clicked Event");
 	}
 }

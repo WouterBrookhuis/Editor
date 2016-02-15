@@ -1,2 +1,2 @@
-javac Editor.java
+javac -d "bin" source\*.java
 run

@@ -1,3 +1,3 @@
 pushd bin
-java Editor
+java Program
 popd
