@@ -153,4 +153,32 @@ class Level
 			tiles[i] = t;
 		}
 	}
+	
+	//Draws the tilemap to an image and saves that image as file
+	public void saveTilemapAsImage(String file)
+	{
+		BufferedImage image = new BufferedImage(tileCountX * 32, tileCountY * 32, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = image.createGraphics();
+		
+		for(int y = 0; y < tileCountY; y++)
+		{
+			for(int x = 0; x < tileCountX; x++)
+			{
+				g.drawImage(tiles[x + y * tileCountX].getBufferedImage(),
+					x * 32, y * 32,
+					32, 32, null);
+			}
+		}
+		
+		try
+		{
+			ImageIO.write(image, "PNG", new File(file));
+		}
+		catch (IOException ie)
+		{
+			
+		}
+		
+		g.dispose();
+	}
 }

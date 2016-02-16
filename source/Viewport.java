@@ -133,6 +133,10 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 			centerOnLevel();
 			repaint();
 		}
+		else if(e.getKeyCode() == KeyEvent.VK_V)
+		{
+			Editor.getInstance().getLoadedLevel().saveTilemapAsImage("../test.png");
+		}
 	}
 	
 	public void keyReleased(KeyEvent e)
