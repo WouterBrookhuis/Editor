@@ -4,6 +4,7 @@ import java.awt.event.*;
 public class EditorTool
 {
 	private Point dragPrevPosition = new Point();		//Previous position of the mouse whilst dragging.
+	public int currentTileIndex = 0;
 	
 	public void enable()
 	{
@@ -15,6 +16,8 @@ public class EditorTool
 	
 	public void mouseMoved(MouseEvent e)
 	{
+		currentTileIndex = Viewport.getMain().mousePointToTileIndex(e.getPoint());
+		Viewport.getMain().repaint();
 	}
 	
 	public void mouseDragged(MouseEvent e)

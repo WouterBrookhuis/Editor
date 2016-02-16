@@ -15,6 +15,7 @@ public class Program
 	
 	public static void main(String[] args)
 	{
+		Editor editor = new Editor();
 		InitFrame();
 	}
 	
@@ -52,14 +53,17 @@ public class Program
 		menubar.add(helpMenu);
 		JMenuItem aboutItem = new JMenuItem("About");
 		helpMenu.add(aboutItem);
+		
+		//Create the tile toolbar
+		TileToolbar toolbar = new TileToolbar(JToolBar.VERTICAL);
+		frame.add(toolbar, BorderLayout.EAST);
+		
 		//Pack it (set size automatically)
 		frame.setMinimumSize(new Dimension(300, 100));
 		frame.pack();
 		//Speaks for itself
 		frame.setVisible(true);
 	}
-	
-	
 }
 
 class OpenMenuListener implements ActionListener

@@ -14,7 +14,7 @@ import java.util.*;
 
 public class Editor
 {
-	private final static Editor instance = new Editor();
+	private static Editor instance;
 	
 	private ArrayList<TileImage> tileImages;		//Tile images
 	private ArrayList<Tile> tileSet;				//Active tileset
@@ -23,6 +23,9 @@ public class Editor
 	
 	public Editor()
 	{
+		if(instance == null)
+			instance = this;
+		
 		tileImages = new ArrayList<>();
 		tileSet = new ArrayList<>();
 		loadedLevel = new Level("New Level", 20, 10);
@@ -91,6 +94,13 @@ public class Editor
 		activeTool.disable();
 		activeTool = newTool;
 		activeTool.enable();
+	}
+	
+	public Tile[] getTileSet()
+	{
+		Tile[] arr = new Tile[tileSet.size()];
+		arr = tileSet.toArray(arr);
+		return arr;
 	}
 }
 
@@ -180,5 +190,15 @@ class Level
 		}
 		
 		g.dispose();
+	}
+	
+	//Sets the tile at location x, y to tile. Performs bounds check. Returns true on success.
+	public boolean setTile(int x, int y, Tile tile)
+	{
+		if(x < 0 || x >= tileCountX || y < 0 || y >= tileCountY)
+			return false;
+		
+		tiles[x + y * tileCountX] = tile;
+		return true;
 	}
 }

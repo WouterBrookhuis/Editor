@@ -14,8 +14,6 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 	private int offsetY;								//Draw offset y
 	private int pixelsPerTile;							//Pixels per tile
 	
-	private int currentTileIndex = 0;
-	
 	public Viewport()
 	{
 		super();
@@ -55,7 +53,7 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 					x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY,
 					pixelsPerTile, pixelsPerTile, null);
 					
-					if(x + y * ll.tileCountX == currentTileIndex)
+					if(x + y * ll.tileCountX == Editor.getInstance().getActiveTool().currentTileIndex)
 						graphics.fillRect(x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY, pixelsPerTile, pixelsPerTile);
 				}
 			}
@@ -87,8 +85,6 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 	public void mouseMoved(MouseEvent e)
 	{
 		Editor.getInstance().getActiveTool().mouseMoved(e);
-		currentTileIndex = mousePointToTileIndex(e.getPoint());
-		repaint();
 	}
 	
 	public void mouseDragged(MouseEvent e)
