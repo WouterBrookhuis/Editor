@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import java.awt.image.*;
+
 
 public class Viewport extends JPanel implements MouseListener, MouseMotionListener, KeyListener
 {
@@ -13,6 +15,7 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 	private int offsetX;								//Draw offset x
 	private int offsetY;								//Draw offset y
 	private int pixelsPerTile;							//Pixels per tile
+	private Point dragPrevPosition = new Point();		//Previous position of the mouse whilst dragging.
 	
 	public Viewport()
 	{
@@ -39,25 +42,29 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 		super.paintComponent(g);
 		Graphics2D graphics = (Graphics2D)g.create();
 		Insets insets = getInsets();
-		//graphics.translate(insets.left, insets.top);
-		//graphics.drawString("This is my panel, bitch!", x, y);
-		//graphics.drawString("This is my panel, bitch!", 10, 20);
-		Level ll = Editor.getInstance().getLoadedLevel();
+		Level ll = Editor.instance.loadedLevel;
 		if(ll != null)
 		{
 			for(int y = 0; y < ll.tileCountY; y++)
 			{
 				for(int x = 0; x < ll.tileCountX; x++)
 				{
-					graphics.drawImage(ll.tiles[x + y * ll.tileCountX].getBufferedImage(),
-					x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY,
-					pixelsPerTile, pixelsPerTile, null);
-					
-					if(x + y * ll.tileCountX == Editor.getInstance().getActiveTool().currentTileIndex)
-						graphics.fillRect(x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY, pixelsPerTile, pixelsPerTile);
+					BufferedImage tileImage = ll.tiles[x + y * ll.tileCountX].getBufferedImage();
+					if(tileImage != null)
+					{
+						graphics.drawImage(tileImage,
+						x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY,
+						pixelsPerTile, pixelsPerTile, null);
+						
+						/*if(x + y * ll.tileCountX == Editor.instance.getActiveTool().currentTileIndex)
+							graphics.fillRect(x * pixelsPerTile + offsetX, y * pixelsPerTile + offsetY, pixelsPerTile, pixelsPerTile);*/
+					}
 				}
 			}
 		}
+		
+		//Tool overlay painting
+		Editor.instance.getActiveTool().paint(graphics);
 		
 		graphics.dispose();
 	}
@@ -79,43 +86,100 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 		return new Point(offsetX, offsetY);
 	}
 	
+	public void centerOnLevel()
+	{
+		Level ll = Editor.instance.loadedLevel;
+		if(ll != null)
+		{
+			offsetX = (getWidth() - ll.tileCountX * pixelsPerTile) / 2;
+			offsetY = (getHeight() - ll.tileCountY * pixelsPerTile) / 2;
+		}
+		else
+		{
+			offsetX = 0;
+			offsetY = 0;
+		}
+		repaint();
+	}
+	
+	public int mousePointToTileIndex(Point mousePoint)
+	{
+		int result = -1;
+		
+		Level ll = Editor.instance.loadedLevel;
+		if(ll != null)
+		{
+			int mapEndLeft = offsetX;
+			int mapEndRight = offsetX + pixelsPerTile * ll.tileCountX;
+			int mapEndTop = offsetY;
+			int mapEndBottom = offsetY + pixelsPerTile * ll.tileCountY;
+			if(mousePoint.x < mapEndRight && mousePoint.x >= mapEndLeft
+				&& mousePoint.y < mapEndBottom && mousePoint.y >= mapEndTop)
+			{
+				int x = (mousePoint.x- offsetX) / pixelsPerTile;
+				int y = (mousePoint.y - offsetY) / pixelsPerTile;
+				result = x + y * ll.tileCountX;
+			}
+		}
+		return result;
+	}
+	
+	public int getPixelsPerTile()
+	{
+		return pixelsPerTile;
+	}
+	
 	/*
 		Our event listeners
 	*/
 	public void mouseMoved(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseMoved(e);
+		Editor.instance.getActiveTool().mouseMoved(e);
 	}
 	
 	public void mouseDragged(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseDragged(e);
+		if(SwingUtilities.isMiddleMouseButton(e))
+		{
+			Point mouseDelta = new Point(e.getX() - dragPrevPosition.x, e.getY() - dragPrevPosition.y);
+			Point newOffset = getOffset();
+			newOffset.x += mouseDelta.x;
+			newOffset.y += mouseDelta.y;
+			setOffset(newOffset);
+			repaint();
+			dragPrevPosition = e.getPoint();
+		}
+		Editor.instance.getActiveTool().mouseDragged(e);
 	}
 	
 	public void mousePressed(MouseEvent e)
 	{
 		requestFocusInWindow();
-		Editor.getInstance().getActiveTool().mousePressed(e);
+		if(SwingUtilities.isMiddleMouseButton(e))
+		{
+			dragPrevPosition = e.getPoint();
+		}
+		Editor.instance.getActiveTool().mousePressed(e);
 	}
 	
 	public void mouseReleased(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseReleased(e);
+		Editor.instance.getActiveTool().mouseReleased(e);
 	}
 	
 	public void mouseEntered(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseEntered(e);
+		Editor.instance.getActiveTool().mouseEntered(e);
 	}
 	
 	public void mouseExited(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseExited(e);
+		Editor.instance.getActiveTool().mouseExited(e);
 	}
 	
 	public void mouseClicked(MouseEvent e)
 	{
-		Editor.getInstance().getActiveTool().mouseClicked(e);
+		Editor.instance.getActiveTool().mouseClicked(e);
 	}
 	
 	public void keyTyped(KeyEvent e)
@@ -127,45 +191,10 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 		if(e.getKeyCode() == KeyEvent.VK_F)
 		{
 			centerOnLevel();
-			repaint();
-		}
-		else if(e.getKeyCode() == KeyEvent.VK_V)
-		{
-			Editor.getInstance().getLoadedLevel().saveTilemapAsImage("../test.png");
 		}
 	}
 	
 	public void keyReleased(KeyEvent e)
 	{
-	}
-	
-	public void centerOnLevel()
-	{
-		Level ll = Editor.getInstance().getLoadedLevel();
-		if(ll != null)
-		{
-			offsetX = (getWidth() - ll.tileCountX * pixelsPerTile) / 2;
-			offsetY = (getHeight() - ll.tileCountY * pixelsPerTile) / 2;
-		}
-		else
-		{
-			offsetX = 0;
-			offsetY = 0;
-		}
-	}
-	
-	public int mousePointToTileIndex(Point mousePoint)
-	{
-		int result = -1;
-		
-		Level ll = Editor.getInstance().getLoadedLevel();
-		if(ll != null)
-		{
-		
-			int x = (mousePoint.x - offsetX) / pixelsPerTile;
-			int y = (mousePoint.y - offsetY) / pixelsPerTile;
-			result = x + y * ll.tileCountX;
-		}
-		return result;
-	}
+	}	
 }

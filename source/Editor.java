@@ -14,74 +14,144 @@ import java.util.*;
 
 public class Editor
 {
-	private static Editor instance;
+	public static Editor instance;
 	
-	private ArrayList<TileImage> tileImages;		//Tile images
-	private ArrayList<Tile> tileSet;				//Active tileset
-	private Level loadedLevel;						//Currently loaded level
-	private EditorTool activeTool;					//Active viewport based tool
+	public TileImage[] tileImages;					//Tile images
+	public Tile[] tileSet;							//Active tileset
+	public Level loadedLevel;						//Currently loaded level
+	public EditorTool activeTool;					//Active viewport based tool
+
+	public EditorTool dummyTool = new EditorTool();
+	public TilePencilTool pencilTool = new TilePencilTool();
+	public TileFillTool fillTool = new TileFillTool();
+	public TileRectTool rectTool = new TileRectTool();
 	
 	public Editor()
 	{
 		if(instance == null)
 			instance = this;
 		
-		tileImages = new ArrayList<>();
-		tileSet = new ArrayList<>();
-		loadedLevel = new Level("New Level", 20, 10);
-		activeTool = new EditorTool();
+		tileImages = new TileImage[64];
+		tileSet = new Tile[64];
+		//loadedLevel = new Level("New Level", 20, 20);
+		
+		activeTool = dummyTool;
 		activeTool.enable();
+
 		
 		//Test
-		TileImage wallImage = createNewTileImage("wall.png");
-		TileImage grassImage = createNewTileImage("grass.png");
-		TileImage sandImage = createNewTileImage("sand.png");
-		
-		Tile wallTile = createNewTile("wall", false, wallImage);
-		Tile grassTile = createNewTile("grass", true, grassImage);
-		Tile sandTile = createNewTile("sand", true, sandImage);
-		
-		for(int y = 0; y < loadedLevel.tileCountY; y++)
+		Tile wallTile = createNewTile("wall", false, createNewTileImage("wall.png"));
+		Tile grassTile = createNewTile("grass", true, createNewTileImage("grass.png"));
+		Tile sandTile = createNewTile("sand", true, createNewTileImage("sand.png"));
+	}
+	
+	public void saveLevel(File file)
+	{
+		if(loadedLevel != null)
 		{
-			for(int x = 0; x < loadedLevel.tileCountX; x++)
+			try
 			{
-				if(x == 0 || y ==0 || x == loadedLevel.tileCountX - 1 || y == loadedLevel.tileCountY - 1)
-					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = wallTile;
-				else if(x == 3 || x == 6)
-					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = sandTile;
-				else
-					loadedLevel.tiles[x + y * loadedLevel.tileCountX] = grassTile;
+				FileOutputStream fileOut =
+				new FileOutputStream(file);
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(loadedLevel);
+				out.close();
+				fileOut.close();
+				System.out.printf("Serialized data is saved in level.ser");
+			}
+			catch(IOException i)
+			{
+				i.printStackTrace();
 			}
 		}
 	}
 	
-	public static Editor getInstance()
+	public void loadLevel(File file)
 	{
-		return instance;
-	}
-	
-	public void loadLevel(String level)
-	{
+		Level l = null;
 		
+		try
+		{
+			FileInputStream fileIn = new FileInputStream(file);
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+			l = (Level)in.readObject();
+			in.close();
+			fileIn.close();
+		}
+		catch(IOException i)
+		{
+			i.printStackTrace();
+			return;
+		}
+		catch(ClassNotFoundException c)
+		{
+			System.out.println("Could not find class!");
+			c.printStackTrace();
+			return;
+		}
+		
+		if(l != null)
+		{
+			//FFS
+			for(int i = 0; i < l.tiles.length; i++)
+			{
+				for(int j = 0; j < tileSet.length; j++)
+				{
+					if(tileSet[j] == null)
+						break;
+					if(l.tiles[i].name.equals(tileSet[j].name))
+					{
+						System.out.println("Replacing tile " + tileSet[j].name);
+						l.tiles[i] = tileSet[j];
+						break;
+					}
+					else if(j == tileSet.length - 1)	//None in our tileSet did not match
+					{
+						//This is a new tile type!
+						TileImage img = createNewTileImage(l.tiles[i].image.imageFileName);
+						createNewTile(l.tiles[i].name, l.tiles[i].walkable, img);
+					}
+				}
+			}
+			
+			loadedLevel = l;
+			Viewport.getMain().centerOnLevel();
+			
+			Program.frame.setTitle("Editor - " + loadedLevel.name);
+		}
 	}
 	
-	public Level getLoadedLevel()
+	public void newLevel(String name, int sizeX, int sizeY)
 	{
-		return loadedLevel;
+		loadedLevel = new Level(name, sizeX, sizeY);
+		Viewport.getMain().centerOnLevel();
+		Program.frame.setTitle("Editor - " + loadedLevel.name);
 	}
 	
 	public TileImage createNewTileImage(String imageFileName)
 	{
 		TileImage newImage = new TileImage(imageFileName);
-		tileImages.add(newImage);
-		return newImage;
+		for(int i = 0; i < tileImages.length; i++)
+		{
+			if(tileImages[i] == null){
+				tileImages[i] = newImage;
+				return newImage;
+			}
+		}
+		return null;
 	}
 	
 	public Tile createNewTile(String name, boolean walkable, TileImage image)
 	{
 		Tile newTile = new Tile(name, walkable, image);
-		tileSet.add(newTile);
-		return newTile;
+		for(int i = 0; i < tileSet.length; i++)
+		{
+			if(tileSet[i] == null){
+				tileSet[i] = newTile;
+				return newTile;
+			}
+		}
+		return null;
 	}
 	
 	public EditorTool getActiveTool()
@@ -95,27 +165,24 @@ public class Editor
 		activeTool = newTool;
 		activeTool.enable();
 	}
-	
-	public Tile[] getTileSet()
-	{
-		Tile[] arr = new Tile[tileSet.size()];
-		arr = tileSet.toArray(arr);
-		return arr;
-	}
 }
 
-class TileImage
+class TileImage implements Serializable
 {
 	public String name;
 	public String imageFileName;
-	public BufferedImage image;
+	public transient BufferedImage image;
 	
 	public TileImage(String imageFileName)
 	{
-		//Try to load the image
+		this.imageFileName = imageFileName;
+		name = imageFileName;
+		loadBufferedImage();
+	}
+	
+	public void loadBufferedImage()
+	{
 		try{
-			this.imageFileName = imageFileName;
-			name = imageFileName;
 			image = ImageIO.read(new File("../resources/" + imageFileName));
 		}catch(IOException e){
 			//Like I give a fuck
@@ -124,7 +191,7 @@ class TileImage
 	}
 }
 
-class Tile
+class Tile implements Serializable
 {
 	public String name;
 	public boolean walkable;
@@ -143,7 +210,7 @@ class Tile
 	}
 }
 
-class Level
+class Level implements Serializable
 {
 	public String name;
 	public Tile[] tiles;
@@ -157,7 +224,8 @@ class Level
 		this.tileCountY = tileCountY;
 		tiles = new Tile[tileCountX * tileCountY];
 		
-		Tile t = new Tile("Grass", true, new TileImage("grass.png"));
+		//Level fills iteself 
+		Tile t = new Tile("empty", true, new TileImage("empty.png"));
 		for(int i = 0; i < tileCountX * tileCountY; i++)
 		{
 			tiles[i] = t;
@@ -165,7 +233,7 @@ class Level
 	}
 	
 	//Draws the tilemap to an image and saves that image as file
-	public void saveTilemapAsImage(String file)
+	public void saveTilemapAsImage(File file)
 	{
 		BufferedImage image = new BufferedImage(tileCountX * 32, tileCountY * 32, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = image.createGraphics();
@@ -182,7 +250,7 @@ class Level
 		
 		try
 		{
-			ImageIO.write(image, "PNG", new File(file));
+			ImageIO.write(image, "PNG", file);
 		}
 		catch (IOException ie)
 		{
@@ -200,5 +268,43 @@ class Level
 		
 		tiles[x + y * tileCountX] = tile;
 		return true;
+	}
+	
+	//Sets the tile at the specified index to tile. Performs bounds check. Returns true on success.
+	public boolean setTile(int index, Tile tile)
+	{
+		if(index < 0 || index >= tiles.length)
+			return false;
+		
+		tiles[index] = tile;
+		return true;
+	}
+	
+	//Sets the tile at location x, y to tile. Performs bounds check. Returns true on success.
+	public Tile getTile(int x, int y)
+	{
+		if(x < 0 || x >= tileCountX || y < 0 || y >= tileCountY)
+			return null;
+		
+		return tiles[x + y * tileCountX];
+	}
+	
+	//Sets the tile at location x, y to tile. Performs bounds check. Returns true on success.
+	public Tile getTile(int index)
+	{
+		if(index < 0 || index >= tiles.length)
+			return null;
+		
+		return tiles[index];
+	}
+	
+	public Point tileIndexToPoint(int index)
+	{
+		if(index < 0 || index >= tiles.length)
+			return null;
+		
+		int y = index / tileCountX;
+		int x = index % tileCountX;
+		return new Point(x, y);
 	}
 }

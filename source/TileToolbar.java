@@ -17,12 +17,7 @@ public class TileToolbar extends JToolBar implements ActionListener
 	{
 		super("Tiles", orientation);
 		
-		Tile[] tileSet = Editor.getInstance().getTileSet();
-		
-		for(int i = 0; i < tileSet.length; i++)
-		{
-			addButton(tileSet[i].name, "A tile", "selectTile" + tileSet[i].name);
-		}
+		updateButtons();
 		
 	}
 	
@@ -37,11 +32,29 @@ public class TileToolbar extends JToolBar implements ActionListener
 		return button;
 	}
 	
+	public void updateButtons()
+	{
+		removeAll();
+		Tile[] tileSet = Editor.instance.tileSet;
+		
+		for(int i = 0; i < tileSet.length; i++)
+		{
+			if(tileSet[i] == null){
+				break;
+			}
+			addButton(tileSet[i].name, "A tile", "selectTile" + i);
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getActionCommand().equals("test"))
+		String action = e.getActionCommand();
+		if(action.substring(0, 10).equals("selectTile"))
 		{
-			System.out.println("BUTTON WAS PRESSED!");
+			int tileIndex = Integer.parseInt(action.substring(10));
+			Editor.instance.pencilTool.setPaintTileIndex(tileIndex);
+			Editor.instance.fillTool.setPaintTileIndex(tileIndex);
+			Editor.instance.rectTool.setPaintTileIndex(tileIndex);
 		}
 	}
 }
