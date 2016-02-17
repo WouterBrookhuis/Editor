@@ -25,6 +25,7 @@ public class Editor
 	public TilePencilTool pencilTool = new TilePencilTool();
 	public TileFillTool fillTool = new TileFillTool();
 	public TileRectTool rectTool = new TileRectTool();
+	public TileCopyTool copyTool = new TileCopyTool();
 	
 	public Editor()
 	{

@@ -11,7 +11,7 @@ import java.util.*;
 
 public class Program
 {
-	public final static JFileChooser fc = new JFileChooser();
+	public final static JFileChooser fc = new JFileChooser(new File(System.getProperty("user.dir")));
 	public static JFrame frame;
 	
 	public static void main(String[] args)

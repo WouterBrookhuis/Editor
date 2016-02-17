@@ -33,7 +33,6 @@ public class EditorTool
 	
 	public void paint(Graphics2D g)
 	{
-		
 	}
 	
 	public void mouseMoved(MouseEvent e)
@@ -73,6 +72,17 @@ public class EditorTool
 	
 	public void mouseClicked(MouseEvent e)
 	{
-		System.out.println("Clicked tile index: " + Viewport.getMain().mousePointToTileIndex(e.getPoint()));
 	}
+	//Keyboard
+	public void keyTyped(KeyEvent e)
+	{
+	}
+	
+	public void keyPressed(KeyEvent e)
+	{
+	}
+	
+	public void keyReleased(KeyEvent e)
+	{
+	}	
 }

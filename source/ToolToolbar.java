@@ -34,7 +34,8 @@ public class ToolToolbar extends JToolBar implements ActionListener
 	public void updateButtons()
 	{
 		removeAll();
-		addButton("Select", "The select tool", "select");
+		addButton("None", "Basically nothing", "none");
+		addButton("Copy", "The tile copy tool", "copy");
 		addButton("Pencil", "The tile pencil tool", "pencil");
 		addButton("Fill", "The fill tool", "fill");
 		addButton("Rect", "The rect tool", "rect");
@@ -45,8 +46,12 @@ public class ToolToolbar extends JToolBar implements ActionListener
 		String action = e.getActionCommand();
 		switch(action)
 		{
-			case "select":{
+			case "none":{
 				Editor.instance.setActiveTool(Editor.instance.dummyTool);
+				break;
+			}
+			case "copy":{
+				Editor.instance.setActiveTool(Editor.instance.copyTool);
 				break;
 			}
 			case "pencil":{

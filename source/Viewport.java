@@ -184,6 +184,7 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 	
 	public void keyTyped(KeyEvent e)
 	{
+		Editor.instance.getActiveTool().keyTyped(e);
 	}
 	
 	public void keyPressed(KeyEvent e)
@@ -192,9 +193,11 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 		{
 			centerOnLevel();
 		}
+		Editor.instance.getActiveTool().keyPressed(e);
 	}
 	
 	public void keyReleased(KeyEvent e)
 	{
+		Editor.instance.getActiveTool().keyReleased(e);
 	}	
 }
