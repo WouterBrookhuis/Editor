@@ -12,7 +12,7 @@ public class TilePencilTool extends EditorTool
 		paintTileIndex = -1;
 		
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Image image = toolkit.getImage("../icons/cursor-pencil.png");
+		Image image = toolkit.getImage(Program.iconDir + "cursor-pencil.png");
 		cursor = toolkit.createCustomCursor(image , new Point(9, 24), "img");
 	}
 	

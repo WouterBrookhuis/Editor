@@ -12,7 +12,7 @@ public class TileFillTool extends EditorTool
 		super();
 		paintTileIndex = -1;
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Image image = toolkit.getImage("../icons/cursor-fill.png");
+		Image image = toolkit.getImage(Program.iconDir + "cursor-fill.png");
 		cursor = toolkit.createCustomCursor(image , new Point(11, 24), "img");
 		//cursor = Cursor.CROSSHAIR_CURSOR;
 	}

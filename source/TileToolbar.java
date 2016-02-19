@@ -13,9 +13,14 @@ import java.util.*;
 
 public class TileToolbar extends JToolBar implements ActionListener
 {
+	public static TileToolbar instance;
+	
 	public TileToolbar(int orientation)
 	{
 		super("Tiles", orientation);
+		
+		if(instance == null)
+			instance = this;
 		
 		updateButtons();
 		

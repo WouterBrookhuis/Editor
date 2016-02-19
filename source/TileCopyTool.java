@@ -146,7 +146,7 @@ public class TileCopyTool extends EditorTool
 		rectStartPoint = null;
 	}
 	
-	private void copyToBuffer(Point minPoint, Point maxPoint)
+	public void copyToBuffer(Point minPoint, Point maxPoint)
 	{
 		copyBufferSize = new Point(maxPoint.x - minPoint.x + 1, maxPoint.y - minPoint.y + 1);
 		copyBuffer = new Tile[copyBufferSize.x * copyBufferSize.y];
@@ -160,14 +160,16 @@ public class TileCopyTool extends EditorTool
 		pastePosition = minPoint;
 	}
 	
-	private void pasteFromBuffer(Point topLeft)
+	public void pasteFromBuffer(Point topLeft)
 	{
+		System.out.println("Buffer size " + copyBufferSize.x + ", " + copyBufferSize.y);
 		if(Editor.instance.loadedLevel != null)
 		{
 			for(int y = 0; y < copyBufferSize.y; y++)
 			{
 				for(int x = 0; x < copyBufferSize.x; x++)
 				{
+					//System.out.println("Pasting tile " + copyBuffer[x + y * copyBufferSize.x].name + " at " + x + ", " + y);
 					Editor.instance.loadedLevel.setTile(x + pastePosition.x, y + pastePosition.y, copyBuffer[x + y * copyBufferSize.x]);
 				}
 			}

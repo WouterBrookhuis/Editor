@@ -49,6 +49,7 @@ public class Viewport extends JPanel implements MouseListener, MouseMotionListen
 			{
 				for(int x = 0; x < ll.tileCountX; x++)
 				{
+					//System.out.println(x + " - " + y);
 					BufferedImage tileImage = ll.tiles[x + y * ll.tileCountX].getBufferedImage();
 					if(tileImage != null)
 					{
