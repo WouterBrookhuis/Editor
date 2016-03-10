@@ -18,6 +18,7 @@ public class Editor
 	
 	public TileImage[] tileImages;					//Tile images
 	public Tile[] tileSet;							//Active tileset
+	public Entity[] entitySet;						//Active entity types
 	public Level loadedLevel;						//Currently loaded level
 	public EditorTool activeTool;					//Active viewport based tool
 

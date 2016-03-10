@@ -130,6 +130,90 @@ public class LevelStream
 		return null;		
 	}
 	
+	//Creates an array containing the entity set bytes for the current level
+	private byte[] createEntitySetData()
+	{
+		/*
+			2 bytes 	-	Lenght of the entity set data in bytes (16 bit integer)
+			2 bytes		-	Amount of entities we have (16 bit integer)
+			? bytes		-	Array of entities according to the following format
+				null terminated string	-	Name of entity
+				null terminated string	-	Name of entity image file (e.g. trashcan.png)
+				4 bytes					-	Image offset x in pixels
+				4 bytes					-	Image offset y in pixels
+		*/
+		if(level != null)
+		{
+			Tile[] tileSet = Editor.instance.tileSet;
+			int lastValidIndex = 0;
+			for(int i = 0; i < tileSet.length; i++)
+			{
+				if(tileSet[i] == null){
+					lastValidIndex = i - 1;
+					break;
+				}
+			}
+			Tile[] tileSetActual = new Tile[lastValidIndex + 1];
+			System.arraycopy(tileSet, 0, tileSetActual, 0, tileSetActual.length);
+			
+			byte[][] tileBytes = new byte[tileSetActual.length][];
+			int tileBytesSize = 0;
+			
+			for(int i = 0; i < tileSetActual.length; i++)
+			{
+				if(tileSetActual[i] == null)
+					break;
+				
+				byte[] tilename;
+				byte walkable;
+				byte[] imagename;
+				
+				byte[] tilenamebytes = tileSetActual[i].name.getBytes();
+				tilename = new byte[tilenamebytes.length + 1];
+				System.arraycopy(tilenamebytes, 0, tilename, 0, tilenamebytes.length);
+				
+				walkable = (byte)(tileSetActual[i].walkable ? 1 : 0 );
+				
+				byte[] imagenamebytes = tileSetActual[i].image.imageFileName.getBytes();
+				imagename = new byte[imagenamebytes.length + 1];
+				System.arraycopy(imagenamebytes, 0, imagename, 0, imagenamebytes.length);
+				
+				byte[] tileData = new byte[tilename.length + 1 + imagename.length];
+				int index = 0;
+				System.arraycopy(tilename, 0, tileData, index, tilename.length);
+				index += tilename.length;
+				tileData[index] = walkable;
+				index++;
+				System.arraycopy(imagename, 0, tileData, index, imagename.length);
+				index += imagename.length;
+				
+				tileBytes[i] = tileData;
+				tileBytesSize += tileData.length;
+			}
+			
+			
+			byte[] data = new byte[tileBytesSize + 4];
+			int index = 0;
+			//Add the total size as a 16 bit integer
+			byte[] size = shortToBytes((short)tileBytesSize);
+			System.arraycopy(size, 0, data, index, size.length);
+			index += size.length;
+			//Add our tile count as a 16 bit integer
+			byte[] count = shortToBytes((short)tileBytes.length);
+			System.arraycopy(count, 0, data, index, count.length);
+			index += count.length;
+			
+			for(int i = 0; i < tileBytes.length; i++)
+			{
+				System.arraycopy(tileBytes[i], 0, data, index, tileBytes[i].length);
+				index += tileBytes[i].length;
+			}
+			
+			return data;
+		}
+		return null;		
+	}
+	
 	//Creates an array containing the tile map bytes for the current level
 	private byte[] createTileMapData()
 	{

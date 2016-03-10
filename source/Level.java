@@ -11,12 +11,15 @@ public class Level
 	public int tileCountX;
 	public int tileCountY;
 	
+	public EntityWorld[] entities;
+	
 	public Level(String name, int tileCountX, int tileCountY)
 	{
 		this.name = name;
 		this.tileCountX = tileCountX;
 		this.tileCountY = tileCountY;
 		tiles = new Tile[tileCountX * tileCountY];
+		entities = new EntityWorld[255];
 		
 		//Level fills iteself 
 		Tile t = new Tile("empty", true, new TileImage("empty.png"));
